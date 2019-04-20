@@ -1,8 +1,8 @@
 package game_object
 
 type Point struct {
-	x uint16
-	y uint16
+	X uint16
+	Y uint16
 }
 
 type GameObject struct {
