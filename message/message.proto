@@ -1,0 +1,22 @@
+syntax = "proto3";
+package message;
+
+enum MessageType {
+    JOIN_GAME = 0;
+    LEAVE_GAME = 1;
+    ACTION = 2;
+}
+
+message Message {
+    MessageType type = 1;
+    bytes content = 2;
+}
+
+message JoinGame  {
+    string username = 1;
+    string token = 2;
+}
+
+message LeaveGame {
+    string token = 1;
+}
