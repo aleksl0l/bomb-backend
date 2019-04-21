@@ -14,11 +14,11 @@ create table if not exists "profile"
 create table if not exists "token"
 (
     id      serial primary key,
-    expires timestamp
+    token   text not null
 );
 
 alter table "profile"
     add column user_id integer references "user" (id) on delete cascade;
 
 alter table "token"
-    add column user_id integer references "user" (id) on delete cascade;
+    add column user_id integer unique references "user" (id) on delete cascade;
