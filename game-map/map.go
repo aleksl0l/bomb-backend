@@ -1,39 +1,42 @@
 package game_map
 
 import (
-	"github.com/aleksl0l/bomb-backend/game-object"
+	"github.com/aleksl0l/bomb-backend/message"
 )
 
 type GameMap interface {
-	SetCell(obj game_object.GameObject)
-	RemoveObject(id int) bool
+	SetCell(obj *message.GameObject)
+	RemoveObject(id int32) bool
 	Field() [][]int
 }
 
 type NaiveMap struct {
-	objects []game_object.GameObject
+	Objects []*message.GameObject
 	size    int
 }
 
-func NewNaiveMap(size int) NaiveMap {
-	return NaiveMap{make([]game_object.GameObject, 0), size}
+func NewNaiveMap(size int) *NaiveMap {
+	return &NaiveMap{
+		make([]*message.GameObject, 0),
+		size,
+	}
 }
 
-func (m *NaiveMap) SetCell(obj game_object.GameObject) {
-	m.objects = append(m.objects, obj)
+func (m *NaiveMap) SetCell(obj *message.GameObject) {
+	m.Objects = append(m.Objects, obj)
 }
 
-func (m *NaiveMap) RemoveObject(id int) bool {
-	for i, o := range m.objects {
-		if o.Id == id {
-			m.objects = append(m.objects[:i], m.objects[i+1:]...)
+func (m *NaiveMap) RemoveObject(id int32) bool {
+	for i, o := range m.Objects {
+		if o.ID == id {
+			m.Objects = append(m.Objects[:i], m.Objects[i+1:]...)
 			return true
 		}
 	}
 	return false
 }
 
-func (m NaiveMap) Field() [][]int {
+func (m *NaiveMap) Field() [][]int {
 	newField := make([][]int, m.size)
 
 	for i := range newField {
@@ -48,8 +51,8 @@ func (m NaiveMap) Field() [][]int {
 		}
 	}
 
-	for _, o := range m.objects {
-		newField[o.Position.X][o.Position.Y] = o.Id
+	for _, o := range m.Objects {
+		newField[o.Position.X][o.Position.Y] = int(o.ID)
 	}
 
 	return newField
