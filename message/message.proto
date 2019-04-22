@@ -5,6 +5,7 @@ enum MessageType {
     JOIN_GAME = 0;
     LEAVE_GAME = 1;
     ACTION = 2;
+    MAP_RESPONSE = 3;
 }
 
 message Message {
@@ -19,4 +20,40 @@ message JoinGame  {
 
 message LeaveGame {
     string token = 1;
+}
+
+enum TypeObject {
+    BREAKABLE_BLOCK = 0;
+    STONE_BLOCK = 1;
+    SPEED_BUFF = 2;
+    FIRE_BUFF = 3;
+    BOMB_NUMBER_BUFF = 4;
+}
+
+message Point {
+    int32 x = 1;
+    int32 y = 2;
+}
+
+message GameObject {
+    TypeObject type = 1;
+    uint32 health_points = 2;
+    int32 ID = 3;
+    Point position = 4;
+}
+
+message PlayerPosition {
+    float x = 1;
+    float y = 2;
+}
+
+message Player {
+    string username = 1;
+    uint32 score = 2;
+    PlayerPosition position = 3;
+}
+
+message GameMap {
+    repeated GameObject gameObjects = 1;
+    repeated Player players = 2;
 }
