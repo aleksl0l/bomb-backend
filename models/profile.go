@@ -2,7 +2,6 @@ package models
 
 import (
 	"github.com/aleksl0l/bomb-backend/database"
-	"log"
 )
 
 type Profile struct {

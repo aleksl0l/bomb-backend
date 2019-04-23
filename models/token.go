@@ -3,7 +3,6 @@ package models
 import (
 	"github.com/aleksl0l/bomb-backend/crypt"
 	"github.com/aleksl0l/bomb-backend/database"
-	"log"
 )
 
 type Token struct {
@@ -20,7 +19,7 @@ func (t *Token) SaveToDatabase() error {
 	tx, err := database.DBConnection.Begin()
 
 	if err != nil {
-		return error
+		return err
 	}
 
 	query := `
@@ -33,18 +32,19 @@ func (t *Token) SaveToDatabase() error {
 	stmt, err := tx.Prepare(query)
 
 	if err != nil {
-		return error
+		return err
 	}
 
 	err = stmt.QueryRow(t.User.Id, t.Token).Scan(&t.Id)
 
 	if err != nil {
 		_ = tx.Rollback()
-		return error
+		return err
 	} else {
 		_ = tx.Commit()
 		stmt.Close()
 	}
+	return err
 }
 
 func (t *Token) InitFromDB(token string) error {
@@ -61,6 +61,12 @@ func (t *Token) InitFromDB(token string) error {
 		return err
 	}
 
-	t.User = SelectUserById(t.User.Id)
+	t.User, err = SelectUserById(t.User.Id)
+
+	if err != nil {
+		return err
+	}
+
 	t.Token = token
+	return err
 }

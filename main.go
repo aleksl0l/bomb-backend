@@ -3,9 +3,9 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"github.com/aleksl0l/bomb-backend/api/user"
+	"github.com/aleksl0l/bomb-backend/api-user"
 	"github.com/aleksl0l/bomb-backend/database"
-	"github.com/gorilla/mux"
+	http_responses "github.com/aleksl0l/bomb-backend/http"
 	_ "github.com/lib/pq"
 	"github.com/spf13/viper"
 	"log"
@@ -35,8 +35,9 @@ func main() {
 		log.Fatal(err)
 	}
 
-	r := mux.NewRouter()
-	r.HandleFunc("/register", user.RegisterHandler).Methods("POST")
-	r.HandleFunc("/login", user.LoginHandler).Methods("POST")
+	r := http_responses.NewRouter()
+
+	r.HandleView("/login", api_user.LoginHandler)
+	r.HandleView("/register", api_user.RegisterHandler)
 	log.Fatal(http.ListenAndServe(":8000", r))
 }

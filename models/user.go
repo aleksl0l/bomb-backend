@@ -3,7 +3,6 @@ package models
 import (
 	"github.com/aleksl0l/bomb-backend/crypt"
 	"github.com/aleksl0l/bomb-backend/database"
-	"log"
 )
 
 type User struct {
@@ -56,13 +55,13 @@ func SelectUserByUsername(username string) (User, error) {
 	var user User
 
 	if err != nil {
-		return nil, err
+		return user, err
 	}
 
 	err = stmt.QueryRow(username).Scan(&user.Id, &user.Username, &user.Hash)
 
 	if err != nil {
-		return nil, err
+		return user, err
 	}
 
 	return user, nil
@@ -74,13 +73,13 @@ func SelectUserById(id int) (User, error) {
 	var user User
 
 	if err != nil {
-		return nil, err
+		return user, err
 	}
 
 	err = stmt.QueryRow(id).Scan(&user.Id, &user.Username, &user.Hash)
 
 	if err != nil {
-		return nil, err
+		return user, err
 	}
 
 	return user, nil
