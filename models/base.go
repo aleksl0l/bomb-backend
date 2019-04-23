@@ -1,6 +1,9 @@
 package models
 
 type BaseModel interface {
-	LoadFromDatabase() bool
-	SaveToDatabase() bool
+	SaveToDatabaseQuery() string
+	LoadFromDatabaseQuery() string
 }
+
+
+func (m *BaseModel)SaveToDatabase()

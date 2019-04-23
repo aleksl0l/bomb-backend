@@ -35,17 +35,31 @@ func LoginHandler(writer http.ResponseWriter, request *http.Request) {
 
 	if user.CheckPassword(body.Password) {
 		token := models.NewToken(user)
-		token.SaveToDatabase()
-		bytes, err := json.Marshal(LoginSuccessfulResponse{Token: token.Token})
+		err = token.SaveToDatabase()
 
 		if err != nil {
-			log.Fatal(err)
-		}
+			bytes, err := json.Marshal(LoginBadRequest{
+				Error: "access denied",
+				Reason: "can't create token"
+			})
 
-		writer.WriteHeader(200)
-		_, _ = writer.Write(bytes)
+			writer.WriteHeader(400)
+			_, _ = writer.Write(bytes)
+		} else {
+			bytes, err := json.Marshal(LoginSuccessfulResponse{Token: token.Token})
+
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			writer.WriteHeader(200)
+			_, _ = writer.Write(bytes)
+		}
 	} else {
-		bytes, err := json.Marshal(LoginBadRequest{Error: "access denied", Reason: "username or password incorrect"})
+		bytes, err := json.Marshal(LoginBadRequest{
+			Error: "access denied",
+			Reason: "username or password incorrect",
+		})
 
 		if err != nil {
 			log.Fatal(err)
@@ -54,5 +68,4 @@ func LoginHandler(writer http.ResponseWriter, request *http.Request) {
 		writer.WriteHeader(400)
 		_, _ = writer.Write(bytes)
 	}
-
 }

@@ -16,11 +16,11 @@ func NewToken(user User) Token {
 	return Token{User: user, Token: crypt.GenerateToken()}
 }
 
-func (t *Token) SaveToDatabase() {
+func (t *Token) SaveToDatabase() error {
 	tx, err := database.DBConnection.Begin()
 
 	if err != nil {
-		log.Fatal(err)
+		return error
 	}
 
 	query := `
@@ -33,33 +33,32 @@ func (t *Token) SaveToDatabase() {
 	stmt, err := tx.Prepare(query)
 
 	if err != nil {
-
-		log.Fatal(err)
+		return error
 	}
 
 	err = stmt.QueryRow(t.User.Id, t.Token).Scan(&t.Id)
 
 	if err != nil {
 		_ = tx.Rollback()
-		log.Fatal(err)
+		return error
 	} else {
 		_ = tx.Commit()
 		stmt.Close()
 	}
 }
 
-func (t *Token) InitFromDB(token string) {
+func (t *Token) InitFromDB(token string) error {
 	query := "SELECT user_id FROM \"token\" WHERE token = ?"
 	stmt, err := database.DBConnection.Prepare(query)
 
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	err = stmt.QueryRow(token).Scan(&t.User.Id)
 
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	t.User = SelectUserById(t.User.Id)

@@ -16,19 +16,19 @@ func (u *User) SaveToDatabase(password string) (int, error) {
 	tx, err := database.DBConnection.Begin()
 
 	if err != nil {
-		log.Fatal(err)
+		return 0, err
 	}
 
 	stmt, err := tx.Prepare("INSERT INTO \"user\" (username, password_hash) VALUES ($1, $2) RETURNING id")
 
 	if err != nil {
-		log.Fatal(err)
+		return 0, err
 	}
 
 	u.Hash, err = crypt.HashPassword(password)
 
 	if err != nil {
-		log.Fatal(err)
+		return 0, err
 	}
 
 	lastInsertedId := 0
@@ -36,7 +36,7 @@ func (u *User) SaveToDatabase(password string) (int, error) {
 
 	if err != nil {
 		_ = tx.Rollback()
-		log.Fatal(err)
+		return 0, err
 	} else {
 		_ = tx.Commit()
 		u.Id = lastInsertedId
@@ -50,38 +50,38 @@ func (u *User) CheckPassword(password string) bool {
 	return crypt.CheckPasswordHash(password, u.Hash)
 }
 
-func SelectUserByUsername(username string) User {
+func SelectUserByUsername(username string) (User, error) {
 	query := "SELECT id, username, password_hash FROM \"user\" WHERE username = $1"
 	stmt, err := database.DBConnection.Prepare(query)
 	var user User
 
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	err = stmt.QueryRow(username).Scan(&user.Id, &user.Username, &user.Hash)
 
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
-	return user
+	return user, nil
 }
 
-func SelectUserById(id int) User {
+func SelectUserById(id int) (User, error) {
 	query := "SELECT id, username, password_hash FROM \"user\" WHERE id = $1"
 	stmt, err := database.DBConnection.Prepare(query)
 	var user User
 
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	err = stmt.QueryRow(id).Scan(&user.Id, &user.Username, &user.Hash)
 
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
-	return user
+	return user, nil
 }
