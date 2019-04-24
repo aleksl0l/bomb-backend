@@ -16,9 +16,9 @@ func NewRouter() *MyRouter {
 	return &MyRouter{mux.NewRouter()}
 }
 
-func (r *MyRouter) HandleView(s string, f func(*json.Decoder) (int, interface{})) {
-	r.HandleFunc(s, func(w http.ResponseWriter, r *http.Request) {
+func (r *MyRouter) HandleView(s string, f func(*json.Decoder) (int, interface{})) *mux.Route {
+	return r.HandleFunc(s, func(w http.ResponseWriter, r *http.Request) {
 		statusCode, response := f(ParseJSON(r.Body))
 		genericResponse(statusCode, w, response)
-	}).Methods("POST")
+	})
 }

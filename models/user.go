@@ -1,8 +1,11 @@
 package models
 
 import (
+	"database/sql"
+	"fmt"
 	"github.com/aleksl0l/bomb-backend/crypt"
 	"github.com/aleksl0l/bomb-backend/database"
+	"log"
 )
 
 type User struct {
@@ -11,38 +14,53 @@ type User struct {
 	Hash     string
 }
 
-func (u *User) SaveToDatabase(password string) (int, error) {
-	tx, err := database.DBConnection.Begin()
+type UserCreationError struct {
+	err string
+}
 
-	if err != nil {
-		return 0, err
-	}
+func (e *UserCreationError) Error() string {
+	return fmt.Sprintf("User creation failed: %s", e.err)
+}
 
-	stmt, err := tx.Prepare("INSERT INTO \"user\" (username, password_hash) VALUES ($1, $2) RETURNING id")
+func (u *User) SaveToDatabase(password string, profile *Profile) (int, error) {
+	userId := 0
+	profileId := 0
 
-	if err != nil {
-		return 0, err
-	}
+	err := database.WithTransaction(func(tx *sql.Tx) error {
+		stmt, err := tx.Prepare("INSERT INTO \"user\" (username, password_hash) VALUES ($1, $2) RETURNING id")
 
-	u.Hash, err = crypt.HashPassword(password)
+		if err != nil {
+			return err
+		}
 
-	if err != nil {
-		return 0, err
-	}
+		u.Hash, err = crypt.HashPassword(password)
 
-	lastInsertedId := 0
-	err = stmt.QueryRow(u.Username, u.Hash).Scan(&lastInsertedId)
+		if err != nil {
+			return err
+		}
 
-	if err != nil {
-		_ = tx.Rollback()
-		return 0, err
-	} else {
-		_ = tx.Commit()
-		u.Id = lastInsertedId
-		stmt.Close()
-	}
+		err = stmt.QueryRow(u.Username, u.Hash).Scan(&userId)
 
-	return lastInsertedId, err
+		if err != nil {
+			return &UserCreationError{err: "user already exists"}
+		}
+
+		stmt, err = tx.Prepare("INSERT INTO \"profile\" (email, user_id) VALUES ($1, $2) RETURNING id")
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		err = stmt.QueryRow(profile.Email, userId).Scan(&profileId)
+
+		if err != nil {
+			return &ProfileCreationError{err: "profile already exists"}
+		}
+
+		return err
+	})
+
+	return userId, err
 }
 
 func (u *User) CheckPassword(password string) bool {

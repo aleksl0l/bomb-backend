@@ -27,22 +27,26 @@ func RegisterHandler(decoder *json.Decoder) (int, interface{}) {
 	_ = decoder.Decode(&body)
 
 	user := models.User{Username: body.Username}
-	userId, err := user.SaveToDatabase(body.Password)
+	profile := models.Profile{Email: body.Email}
+
+	_, err := user.SaveToDatabase(body.Password, &profile)
 
 	if err != nil {
-		return 400, RegisterBadResponse{
-			Error:  "User creation failed",
-			Reason: "User already exists",
-		}
-	}
-
-	profile := models.Profile{UserId: userId, Email: body.Email}
-	_, err = profile.SaveToDatabase()
-
-	if err != nil {
-		return 400, RegisterBadResponse{
-			Error:  "User creation failed",
-			Reason: "Email is already taken",
+		if _, ok := err.(*models.UserCreationError); ok {
+			return 400, RegisterBadResponse{
+				Error:  "User creation failed",
+				Reason: "User already exists",
+			}
+		} else if _, ok := err.(*models.ProfileCreationError); ok {
+			return 400, RegisterBadResponse{
+				Error:  "User creation failed",
+				Reason: "Email is already taken",
+			}
+		} else {
+			return 400, RegisterBadResponse{
+				Error:  "User creation failed",
+				Reason: "Unknown error",
+			}
 		}
 	}
 

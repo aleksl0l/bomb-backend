@@ -37,7 +37,7 @@ func main() {
 
 	r := http_responses.NewRouter()
 
-	r.HandleView("/login", api_user.LoginHandler)
-	r.HandleView("/register", api_user.RegisterHandler)
+	r.HandleView("/register", api_user.RegisterHandler).Methods("POST")
+	r.HandleView("/login", api_user.LoginHandler).Methods("POST")
 	log.Fatal(http.ListenAndServe(":8000", r))
 }
