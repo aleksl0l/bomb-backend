@@ -6,6 +6,8 @@ enum MessageType {
     LEAVE_GAME = 1;
     ACTION = 2;
     MAP_RESPONSE = 3;
+    PLAYER_POSITION_REQUEST = 4;
+    CREATE_GAME_REQUEST = 5;
 }
 
 message Message {
@@ -56,4 +58,9 @@ message Player {
 message GameMap {
     repeated GameObject gameObjects = 1;
     repeated Player players = 2;
+}
+
+message PlayerPositionRequest {
+    PlayerPosition position = 1;
+    string token = 2;
 }

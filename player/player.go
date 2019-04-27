@@ -3,24 +3,18 @@ package player
 import (
 	"github.com/aleksl0l/bomb-backend/game-object"
 	"github.com/aleksl0l/bomb-backend/message"
+	"github.com/golang/protobuf/proto"
 	"github.com/gorilla/websocket"
+	"time"
 )
 
-type Connection struct {
-	conn websocket.Conn
-}
+const (
+	// Time allowed to read the next pong message from the peer.
+	pongWait = 60 * time.Second
 
-func (c *Connection) Write(data []byte) error {
-	return c.conn.WriteMessage(websocket.TextMessage, data)
-}
-
-func (c *Connection) Read() (error, []byte) {
-	_, msg, err := c.conn.ReadMessage()
-	if err != nil {
-		return err, nil
-	}
-	return nil, msg
-}
+	// Maximum message size allowed from peer.
+	maxMessageSize = 512
+)
 
 type IPlayer interface {
 	GetAction() *game_object.GameObject
@@ -28,14 +22,45 @@ type IPlayer interface {
 }
 
 type Player struct {
-	Player message.Player
+	Player *message.Player
 	conn   *websocket.Conn
 }
 
-func NewPlayer(conn *websocket.Conn) *Player {
+func NewPlayer(conn *websocket.Conn, player *message.Player) *Player {
 	return &Player{
-		message.Player{},
+		player,
 		conn,
+	}
+}
+
+func (p *Player) HandlePlayerActions() {
+	defer func() {
+		p.conn.Close()
+	}()
+	p.conn.SetReadLimit(maxMessageSize)
+	p.conn.SetReadDeadline(time.Now().Add(pongWait))
+	p.conn.SetPongHandler(func(string) error {
+		p.conn.SetReadDeadline(time.Now().Add(pongWait))
+		return nil
+	})
+	for {
+		_, msg, err := p.conn.ReadMessage()
+		if err != nil {
+			break
+		}
+		parsedMsg := &message.Message{}
+		err = proto.Unmarshal(msg, parsedMsg)
+		if err != nil {
+			continue
+		}
+		switch parsedMsg.Type {
+		case message.MessageType_PLAYER_POSITION_REQUEST:
+			position := &message.PlayerPositionRequest{}
+			err = proto.Unmarshal(parsedMsg.Content, position)
+			p.Player.Position = position.Position
+			//case message.MessageType_CREATE_GAME_REQUEST:
+
+		}
 	}
 }
 

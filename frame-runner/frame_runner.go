@@ -36,7 +36,7 @@ func (fr *FrameRunner) prepareMapResponse() ([]byte, error) {
 		Players:     make([]*message.Player, 0, len(fr.Players)),
 	}
 	for _, p := range fr.Players {
-		gameMapResponse.Players = append(gameMapResponse.Players, &p.(*player.Player).Player)
+		gameMapResponse.Players = append(gameMapResponse.Players, p.(*player.Player).Player)
 	}
 	content, err := proto.Marshal(gameMapResponse)
 	if err != nil {
@@ -66,7 +66,7 @@ func (fr *FrameRunner) AddPlayer(player player.IPlayer) {
 }
 
 func (fr *FrameRunner) Run() {
-	ticker := time.NewTicker(1 * time.Second)
+	ticker := time.NewTicker(10 * time.Millisecond)
 	for {
 		select {
 		case <-ticker.C:

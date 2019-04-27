@@ -46,7 +46,8 @@ func handleJoinGame(msg *message.Message, conn *websocket.Conn) error {
 	if err != nil {
 		return err
 	}
-	newPlayer := player.NewPlayer(conn)
+	newPlayer := player.NewPlayer(conn, &message.Player{Username: joinGame.Username})
+	go newPlayer.HandlePlayerActions()
 	frameRunner.AddPlayer(newPlayer)
 	log.Info(fmt.Sprintf("User %s joined game", joinGame.Username))
 	return nil
